@@ -1,0 +1,11 @@
+
+service: default
+runtime: python37
+
+env_variables:
+    FLASK_APP: 'main:app'
+    FLASK_ENV: 'production'
+
+instance_class: F1
+
+# ./cloud_sql_proxy -instances=theafrisback:us-central1:theafris=tcp:3306

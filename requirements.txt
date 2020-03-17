@@ -1,0 +1,6 @@
+
+cleo==0.6.8
+Flask==1.1.1
+orator==0.9.9
+flask-orator==0.2.0
+PyMySQL==0.9.3
