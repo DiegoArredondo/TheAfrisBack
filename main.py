@@ -100,7 +100,7 @@ def register():
         usuarioNuevo.descripcion = descripcion
 
         usuarioNuevo.save()
-        return "True"
+        return jsonify({"success":"Agregado con éxito"})
     except Exception as e:
         return jsonify({"error":str(e)})
 
@@ -149,7 +149,7 @@ def postEvent():
 
         eventoNvo.save()
 
-        return "True"
+        return jsonify({"success":"Agregado con éxito"})
     except Exception as e:
         return jsonify({"error":str(e)})
 
@@ -157,9 +157,10 @@ def postEvent():
 EJEMPLO DE REQUEST:
 {
 "titulo" : "Titulo de la publicacion",
-"descripcion" : "Descripcion de prueba",
+"contenido" : "Descripcion de prueba",
 "etiquetas" : "#etiqueta1,#etiqueta2,#etiqueta3",
-"creador" : 1
+"creador" : 1,
+"seccion" : 1
 }
  """
 @app.route('/postPost',methods=['POST'])
@@ -182,7 +183,7 @@ def postPost():
 
         postNvo.save()
 
-        return "True"
+        return jsonify({"success":"Agregado con éxito"})
     except Exception as e:
         return jsonify({"error":str(e)})
 

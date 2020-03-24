@@ -10,9 +10,10 @@ class CreateTablePubliciones(Migration):
         with self.schema.create('publicaciones') as table:
             table.increments('id')
             table.string('titulo')
-            table.string('descripcion')
+            table.string('contenido')
             table.string('etiquetas')
             table.integer('creador')
+            table.integer('seccion')
             #table.string('latlng')
             table.timestamps()
 
