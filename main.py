@@ -2,6 +2,7 @@ from flask_orator import jsonify
 from flask import Flask, render_template, send_from_directory, request
 from app import db_config
 from flask import Flask
+from flask_cors import CORS
 from flask_orator import Orator
 import json
 import time
@@ -10,6 +11,8 @@ import datetime
 app = Flask(__name__, static_url_path= '')
 app.config['ORATOR_DATABASES']= db_config.db_config
 db= Orator(app)
+# Cors (CROSS ORIGIN RESOURCE SHARING) 
+CORS(app=app,supports_credentials=True)
 
 """ IMPORT MODELS """
 from app.models import Eventos as tablaEventos
@@ -79,6 +82,7 @@ EJEMPLO DE REQUEST:
 def register():
     try:
         content = request.get_json(force=True)
+        print("Received request for: register")
         print(content)
         nombre=content['nombre']
         apellidos=content['apellidos']
@@ -121,6 +125,7 @@ EJEMPLO DE REQUEST:
 def postEvent():
     try:
         content = request.get_json(force=True)
+        print("Received request for: postEvent")
         print(content)
 
         titulo=content['titulo']
@@ -153,6 +158,77 @@ def postEvent():
     except Exception as e:
         return jsonify({"error":str(e)})
 
+""" EDITAR UN EVENTO
+EJEMPLO DE REQUEST:
+{
+"id" : 1
+"titulo" : "Titulo del evento",
+"descripcion" : "Descripcion de prueba",
+"fechaHora" : "2020-04-20 12:00:17",
+"etiquetas" : "#etiqueta1,#etiqueta2,#etiqueta3",
+"duracion" : "5 dias",
+"creador" : 1,
+"cupo" : 50,
+"ubicacion" : "Lugar del evento"
+}
+ """
+@app.route('/updateEvent',methods=['POST'])
+def updateEvent():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: updateEvent")
+        print(content)
+
+        eventid=content['id']
+        titulo=content['titulo']
+        descripcion=content['descripcion']
+        fechaHora=content['fechaHora']
+        etiquetas=content['etiquetas']
+        duracion=content['duracion']
+        cupo=content['cupo']
+        ubicacion=content['ubicacion']
+
+        if cupo <= 0:
+            if cupo != -1:
+                raise ValueError('El cupo debe ser de al menos 1 persona')
+
+        evento = tablaEventos.where_id(eventid).first()
+        if evento != None:
+            tablaEventos.where_id('id', eventid).update({"titulo": titulo,"descripcion": descripcion,"fechaHora": fechaHora,"etiquetas": etiquetas,"duracion": duracion,"cupo": cupo,"ubicacion": ubicacion})
+            return jsonify({"success":"Actualizado con éxito"})
+        else:
+            raise ValueError("El evento que está intentando eliminar no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+
+""" ELIMINAR UN EVENTO
+EJEMPLO DE REQUEST:
+{
+"id" : 1
+}
+ """
+@app.route('/deleteEvent',methods=['POST'])
+def deleteEvent():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: deleteEvent")
+        print(content)
+
+        eventid=content['id']
+
+        evento = tablaEventos.where_id(eventid).first()
+        if evento != None:
+            tablaEventos.where_id('id', eventid).delete()
+            return jsonify({"success":"Eliminado con éxito"})
+        else:
+            raise ValueError("El evento que está intentando eliminar no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+
+
+
 """ AGREGAR UNA PUBLICACION
 EJEMPLO DE REQUEST:
 {
@@ -167,19 +243,22 @@ EJEMPLO DE REQUEST:
 def postPost():
     try:
         content = request.get_json(force=True)
+        print("Received request for: postPost")
         print(content)
 
         titulo=content['titulo']
-        descripcion=content['descripcion']
+        contenido=content['contenido']
         etiquetas=content['etiquetas']
         creador=content['creador']
+        seccion=content['seccion']
 
         postNvo= tablaPublicaciones()
 
         postNvo.titulo = titulo
-        postNvo.descripcion = descripcion
+        postNvo.contenido = contenido
         postNvo.etiquetas = etiquetas
         postNvo.creador = creador
+        postNvo.seccion = seccion
 
         postNvo.save()
 
@@ -187,9 +266,135 @@ def postPost():
     except Exception as e:
         return jsonify({"error":str(e)})
 
+""" EDITAR UNA PUBLICACION
+EJEMPLO DE REQUEST:
+{
+"id" : 1
+"titulo" : "Titulo de la publicacion",
+"contenido" : "Descripcion de prueba",
+"etiquetas" : "#etiqueta1,#etiqueta2,#etiqueta3",
+"creador" : 1,
+"seccion" : 1
+}
+ """
+@app.route('/updatePost',methods=['POST'])
+def updatePost():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: updatePost")
+        print(content)
 
+        postid=content['id']
+        titulo=content['titulo']
+        contenido=content['contenido']
+        etiquetas=content['etiquetas']
+        seccion=content['seccion']
 
+        post = tablaPublicaciones.where_id(postid).first()
+        if post != None:
+            tablaPublicaciones.where_id('id', postid).update({"titulo":titulo,"contenido" : contenido,"etiquetas" : etiquetas,"seccion" : seccion})
+            return jsonify({"success":"Actualizado con éxito"})
+        else:
+            raise ValueError("La publicación que está intentando eliminar no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
 
+""" ELIMINAR UNA PUBLICACION
+EJEMPLO DE REQUEST:
+{
+"id" : 1
+}
+ """
+@app.route('/deletePost',methods=['POST'])
+def deletePost():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: deletePost")
+        print(content)
+
+        postid=content['id']
+
+        post = tablaPublicaciones.where_id(postid).first()
+        if post != None:
+            tablaPublicaciones.where_id('id', postid).delete()
+            return jsonify({"success":"Eliminado con éxito"})
+        else:
+            raise ValueError("La publicación que está intentando eliminar no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+""" OBTENER UNA PUBLICACION
+EJEMPLO DE REQUEST:
+{ "id" : 1 }
+ """
+@app.route('/getPost',methods=['POST'])
+def getPost():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: getPost")
+        print(content)
+
+        postid=content['id']
+        post = tablaPublicaciones.where_id(postid).first()
+        if post != None:
+            return jsonify(post.serialize())
+        else:
+            raise ValueError("La publicación que está buscando no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+""" OBTENER UN EVENTO
+EJEMPLO DE REQUEST:
+{ "id" : 1 }
+ """
+@app.route('/getEvent',methods=['POST'])
+def getEvent():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: getEvent")
+        print(content)
+
+        eventid=content['id']
+        evento = tablaEventos.where_id(eventid).first()
+        if evento != None:
+            return jsonify(evento.serialize())
+        else:
+            raise ValueError("El evento que está buscando no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+""" OBTENER UN USUARIO
+EJEMPLO DE REQUEST:
+{ "id" : 1 }
+ """
+@app.route('/getUser',methods=['POST'])
+def getUser():
+    try:
+        content = request.get_json(force=True)
+        print("Received request for: getUser")
+        print(content)
+
+        userid=content['id']
+        user = tablaEventos.where_id(userid).first()
+        if evento != None:
+            return jsonify(user.serialize())
+        else:
+            raise ValueError("El usuario que está buscando no existe")
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
+@app.route('/getAllUsers')
+def dataUsers():
+    return jsonify(tablaUsuarios.get().serialize())
+@app.route('/getAllPosts')
+def dataPosts():
+    return jsonify(tablaPublicaciones.get().serialize())
+@app.route('/getAllEvents')
+def dataEvents():
+    return jsonify(tablaEventos.get().serialize())
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 def getJson(url):
     jsonFile = open(url)
@@ -197,16 +402,3 @@ def getJson(url):
     answer = json.load(jsonFile)
     print(answer)
     return answer
-
-@app.route('/showUsers')
-def dataUsers():
-    return jsonify(tablaUsuarios.get().serialize())
-@app.route('/showPosts')
-def dataPosts():
-    return jsonify(tablaPublicaciones.get().serialize())
-@app.route('/showEvents')
-def dataEvents():
-    return jsonify(tablaEventos.get().serialize())
-
-if __name__ == '__main__':
-    app.run(debug=True)
