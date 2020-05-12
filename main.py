@@ -393,6 +393,17 @@ def dataPosts():
 def dataEvents():
     return jsonify(tablaEventos.get().serialize())
 
+
+
+@app.route('/getFeed', methods=['GET'])
+def getFeed():
+    try:
+        publicaciones = tablaPublicaciones.order_by("created_at").limit(20).get()
+        return jsonify({"feed":publicaciones.serialize()})
+
+    except Exception as e:
+        return jsonify({"error":str(e)})
+
 if __name__ == '__main__':
     app.run(debug=True)
 
